@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Email Viewer</title>
+</head>
+<body>
+  <div id="email-content"></div>
+  <script>
+    // Replace with the actual email ID you want to retrieve
+    const emailId = 'YOUR_EMAIL_ID';
+
+    // Make an HTTP GET request to retrieve the email content
+    fetch(`/emails/${emailId}`)
+      .then((response) => response.text())
+      .then((htmlContent) => {
+        // Display the email content in the 'email-content' div
+        document.getElementById('email-content').innerHTML = htmlContent;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  </script>
+</body>
+</html>
