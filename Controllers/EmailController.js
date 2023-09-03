@@ -46,6 +46,9 @@ const callBack = async (req, res) => {
   
     oauth2Client.setCredentials(tokens)
 
+    // res.redirect(`/emails?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}&expiry_date=${formattedExpiryDate}`);
+
+
   
     res.redirect('/emails');
   } catch (error) {
