@@ -8,5 +8,7 @@ router.get('/auth', EmailController.connectGoogleAccount);
 router.get("/oauth2callback", EmailController.callBack);
 router.get("/emails", EmailController.getAllEmails);
 router.get("/getEmailById/:id", EmailController.getEmailById);
+router.post("/schedule-meeting", EmailController.celenderMeeting);
+router.get('/meetings', EmailController.getAllMeetings);
 
 module.exports = router;

@@ -5,8 +5,14 @@ const base64url = require('base64url');
 const readline = require('readline');
 const moment = require('moment');
 const cheerio = require('cheerio'); // To parse HTML content
+const uuid  = require('uuid')
 
-const oauth2Client = new OAuth2(
+
+
+const GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
+const CALENDER_SCOPES = ['https://www.googleapis.com/auth/calendar'];
+
+const oAuth2Client = new OAuth2(
   '293248084081-tj6qmn37qr1gkema8jdkpneek6tjq37f.apps.googleusercontent.com',
   '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',
   'http://localhost:3000/oauth2callback'
@@ -14,14 +20,14 @@ const oauth2Client = new OAuth2(
 
 const connectGoogleAccount = (req, res) => {
   try {
-    const authUrl = oauth2Client.generateAuthUrl({
+    const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/gmail.readonly'],
+      scope: [GMAIL_SCOPES, CALENDER_SCOPES].join(' '),
     });
     res.redirect(authUrl);
   
   } catch (error) {
-    console.error(error);
+    console.error(error); 
     res.status(500).json({massage: 'Internal server error'});
     
   }
@@ -29,8 +35,9 @@ const connectGoogleAccount = (req, res) => {
 
 const callBack = async (req, res) => {
   try {
-    const { tokens } = await oauth2Client.getToken(req.query.code);
-      // Parse and format the expiry date
+    const code = req.query.code;
+    const { tokens } = await oAuth2Client.getToken(code);
+      // Parse and format the expiry date 
       const expiryDate = new Date(tokens.expiry_date);
       const formattedExpiryDate = expiryDate.toLocaleString('en-US', {
         year: 'numeric',
@@ -44,12 +51,10 @@ const callBack = async (req, res) => {
   
     console.log('Formatted Expiry Date:', formattedExpiryDate);
   
-    oauth2Client.setCredentials(tokens)
+    oAuth2Client.setCredentials(tokens)
+    // res.redirect('/emails');
+    res.send('Authentication successful! You can now use the API to schedule meetings.');
 
-
-
-  
-    res.redirect('/emails');
   } catch (error) {
     console.error(error);
     res.status(500).json({massage: 'Internal server error'});
@@ -61,7 +66,7 @@ const getAllEmails = async (req, res) => {
   try {
     const { page = 1, perPage = 50 } = req.query;
     const startIndex = (page - 1) * perPage;
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
     const response = await gmail.users.messages.list({
       userId: 'me',
       labelIds: ['INBOX'],
@@ -127,7 +132,7 @@ const getAllEmails = async (req, res) => {
 const getEmailById = async (req, res) => {
   try {
     const { id } = req.params;
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
     const response = await gmail.users.messages.get({
       userId: 'me',
       id,
@@ -220,11 +225,90 @@ const getEmailById = async (req, res) => {
     
   }
 };
+const scheduleMeeting = async (auth, meetingDetails) => {
+  try {
+    const calendar = google.calendar({ version: 'v3', auth });
+    const requestId = uuid.v4();
+
+    const event = {
+        summary: meetingDetails.title,
+        location: meetingDetails.location,
+        description: meetingDetails.description,
+        start: {
+          dateTime: meetingDetails.startDateTime,
+          timeZone: meetingDetails.timeZone,
+        },
+        end: {
+          dateTime: meetingDetails.endDateTime,
+          timeZone: meetingDetails.timeZone,
+        },
+        attendees: meetingDetails.attendees,
+        sendNotifications: true,
+        conferenceData: {
+            createRequest: {
+                requestId: requestId, // Use a unique identifier here
+            }
+        }
+      };
+    const response = await calendar.events.insert({
+      calendarId: 'primary', // Use 'primary' for the user's primary calendar
+      resource: event,
+      conferenceDataVersion: 1,
+    });
+
+    console.log('Event created: %s', response.data.htmlLink);
+    return response.data;
+  } catch (error) {
+    console.error('Error scheduling meeting:', error);
+    throw error;
+  }
+}
+
+const celenderMeeting = async (req, res) => {
+  try {
+    const meetingDetails = req.body; // Get meeting details from the request body
+    const event = await scheduleMeeting(oAuth2Client, meetingDetails);
+    res.json({ message: 'Meeting scheduled successfully', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to schedule meeting', error: error.message });
+  }
+}
+
+const getAllMeetings = async (req, res) => {
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
+
+    const response = await calendar.events.list({
+      calendarId: 'primary', // Use 'primary' for the user's primary calendar
+      timeMin: new Date().toISOString(),
+      maxResults: 10, // You can change this to the desired number of events to retrieve
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+
+    const meetings = response.data.items.map((event) => ({
+      id: event.id,
+      summary: event.summary,
+      location: event.location,
+      description: event.description,
+      start: event.start.dateTime || event.start.date,
+      end: event.end.dateTime || event.end.date,
+    }));
+
+    res.json({ meetings });
+  } catch (error) {
+    console.error('Error fetching meetings:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 
 
 module.exports ={
   connectGoogleAccount,
   callBack,
   getAllEmails,
-  getEmailById
+  getEmailById,
+  celenderMeeting,
+  getAllMeetings
 }
