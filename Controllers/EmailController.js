@@ -6,6 +6,7 @@ const readline = require('readline');
 const moment = require('moment');
 const cheerio = require('cheerio'); // To parse HTML content
 const uuid  = require('uuid')
+const User = require("../Models/UserModel");
 
 
 
@@ -15,15 +16,17 @@ const CALENDER_SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const oAuth2Client = new OAuth2(
   '293248084081-tj6qmn37qr1gkema8jdkpneek6tjq37f.apps.googleusercontent.com',
   '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',
-  'http://localhost:3000/oauth2callback'
+  'http://localhost:3001/oauth2callback'
 );
 
 const connectGoogleAccount = (req, res) => {
   try {
+    const userId = req.params.userId;
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: [GMAIL_SCOPES, CALENDER_SCOPES].join(' '),
     });
+    req.session.userId = userId;
     res.redirect(authUrl);
   
   } catch (error) {
@@ -35,8 +38,24 @@ const connectGoogleAccount = (req, res) => {
 
 const callBack = async (req, res) => {
   try {
+    // const userId = req.session.userId
     const code = req.query.code;
     const { tokens } = await oAuth2Client.getToken(code);
+    console.log(tokens);
+    const userId = req.session.userId; // Make sure userId is stored in the session
+    console.log(userId);
+
+       // Update the user's 'isAccountConnected' field to true
+       const user = await User.findById(userId);
+       if (!user) {
+         return res.status(404).json({ message: 'User not found' });
+       }
+   
+       // Update the isAccountConnected field
+       user.isAccountConnected = true;
+   
+       // Save the updated user
+       await user.save();
       // Parse and format the expiry date 
       const expiryDate = new Date(tokens.expiry_date);
       const formattedExpiryDate = expiryDate.toLocaleString('en-US', {
@@ -50,10 +69,26 @@ const callBack = async (req, res) => {
       });
   
     console.log('Formatted Expiry Date:', formattedExpiryDate);
+
+        // // Retrieve the user document from the database (you may need to adapt this to your actual database setup)
+        // const user = await User.findById(userId);
+
+        // if (!user) {
+        //   return res.status(404).json({ message: 'User not found' });
+        // }
+    
+        // // Update the isAccountConnected field to true
+        // user.isAccountConnected = true;
+    
+        // // Save the updated user document
+        // await user.save();
+  
   
     oAuth2Client.setCredentials(tokens)
     // res.redirect('/emails');
-    res.send('Authentication successful! You can now use the API to schedule meetings.');
+    // res.send('Authentication successful! You can now use the API to schedule meetings.');
+    res.redirect('http://localhost:3001/redirect/connected');
+
 
   } catch (error) {
     console.error(error);

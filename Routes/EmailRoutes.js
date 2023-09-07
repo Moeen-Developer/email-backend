@@ -4,7 +4,7 @@ const EmailController = require("../Controllers/EmailController");
 
 
 // Route to fetch all emails for a user
-router.get('/auth', EmailController.connectGoogleAccount);
+router.get('/auth/:userId', EmailController.connectGoogleAccount);
 router.get("/oauth2callback", EmailController.callBack);
 router.get("/emails", EmailController.getAllEmails);
 router.get("/getEmailById/:id", EmailController.getEmailById);

@@ -8,7 +8,7 @@ const {zonedTimeToUtc} = require('date-fns-tz');
 
 exports.signup = async (req, res) => {
     try {
-        const {username, fullname, email, phone, password, Admin, role} = req.body;
+        const {username, fullname, email,password, Admin, role} = req.body;
         // Check if the username already exists
         const existingUsername = await User.findOne({username});
         if (existingUsername) {
@@ -28,7 +28,6 @@ exports.signup = async (req, res) => {
             username,
             fullname,
             email,
-            phone,
             password: hashedPassword,
             Admin: Admin || false,
             role,
@@ -38,7 +37,7 @@ exports.signup = async (req, res) => {
         res.status(201).json({message: 'User created successfully', user});
     } catch (error) {
         console.error(error);
-        res.status(500).json({error: 'Internal server error'});
+        res.status(500).json({error: 'Internal server error', error});
     }
 };
 
@@ -66,7 +65,6 @@ exports.login = async (req, res) => {
             username: user.username,
             fullname: user.fullname,
             email: user.email,
-            phone: user.phone,
             isAccountConnected: user.isAccountConnected,
             Admin: user.Admin,
         };
@@ -199,7 +197,7 @@ exports.resetPassword = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const {username, fullname, email, phone, password, role} = req.body;
+        const {username, fullname, email, password, role} = req.body;
 
         const user = await User.findById(userId);
         if (!user) {
@@ -209,7 +207,6 @@ exports.updateUser = async (req, res) => {
         user.username = username || user.username;
         user.fullname = fullname || user.fullname;
         user.email = email || user.email;
-        user.phone = phone || user.phone;
         if (password) {
             const hashedPassword = await bcrypt.hash(password, 10);
             user.password = hashedPassword;
