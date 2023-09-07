@@ -70,20 +70,6 @@ const callBack = async (req, res) => {
   
     console.log('Formatted Expiry Date:', formattedExpiryDate);
 
-        // // Retrieve the user document from the database (you may need to adapt this to your actual database setup)
-        // const user = await User.findById(userId);
-
-        // if (!user) {
-        //   return res.status(404).json({ message: 'User not found' });
-        // }
-    
-        // // Update the isAccountConnected field to true
-        // user.isAccountConnected = true;
-    
-        // // Save the updated user document
-        // await user.save();
-  
-  
     oAuth2Client.setCredentials(tokens)
     // res.redirect('/emails');
     // res.send('Authentication successful! You can now use the API to schedule meetings.');
@@ -175,11 +161,7 @@ const getEmailById = async (req, res) => {
 
     const emailContent = response.data;
     const timestamp = new Date(Number(emailContent.internalDate));
-    // const formattedTimestamp = timestamp.toLocaleString('en-US', {
-    //   hour: 'numeric',
-    //   minute: 'numeric',
-    //   hour12: true,
-    // });
+  
     const formattedTimestamp = moment(timestamp).fromNow();
 
 
