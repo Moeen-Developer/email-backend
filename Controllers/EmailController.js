@@ -174,7 +174,7 @@ const getEmailById = async (req, res) => {
     const to = emailContent.payload.headers.find(
       (header) => header.name === 'To'
     ).value;
-    const date = moment(timestamp).format('M  MM D, YYYY, h:mm A');
+    const date = moment(timestamp).format('MM D, YYYY, h:mm A');
 
     const emailHeader = `
       <div style="background-color: #f4f4f4; padding: 10px;">
@@ -272,9 +272,13 @@ const scheduleMeeting = async (auth, meetingDetails) => {
       resource: event,
       conferenceDataVersion: 1,
     });
+    const meetingLink = response.data.hangoutLink; // Get the meeting link from the response
 
-    console.log('Event created: %s', response.data.htmlLink);
-    return response.data;
+    console.log('Meeting link:', meetingLink);
+    return { meetingLink, ...response.data }; // Include the meeting link in the response
+
+    // console.log('Event created: %s', response.data.htmlLink);
+    // return response.data;
   } catch (error) {
     console.error('Error scheduling meeting:', error);
     throw error;
@@ -310,6 +314,8 @@ const getAllMeetings = async (req, res) => {
       description: event.description,
       start: event.start.dateTime || event.start.date,
       end: event.end.dateTime || event.end.date,
+      meetingLink: event.hangoutLink || event.htmlLink, // Use 'hangoutLink' for Google Meet meetings
+      // attendees: event.attendees || [], // Include the attendees in the response
     }));
 
     res.json({ meetings });
