@@ -246,9 +246,15 @@ const getAllMeetings = async (req, res) => {
     try {
         const calendar = google.calendar({version: 'v3', auth: oAuth2Client});
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const startIndex = (page - 1) * limit;
+
+
         const response = await calendar.events.list({
             calendarId: 'primary', // Use 'primary' for the user's primary calendar
-            timeMin: new Date().toISOString(), maxResults: 10, // You can change this to the desired number of events to retrieve
+            timeMin: new Date().toISOString(), // You can change this to the desired number of events to retrieve
             singleEvents: true, orderBy: 'startTime',
         });
 
@@ -262,7 +268,19 @@ const getAllMeetings = async (req, res) => {
             meetingLink: event.hangoutLink || event.htmlLink, // Use 'hangoutLink' for Google Meet meetings
             attendees: event.attendees || [], // Include the attendees in the response
         }));
-        res.json({meetings});
+        const totalMeetings = meetings.length;
+        const totalPages = Math.ceil(totalMeetings / limit);
+
+        const paginatedMeetings = meetings.slice(startIndex, startIndex + limit);
+
+        res.json({
+            meetings: paginatedMeetings,
+            totalPages,
+            currentPage: page,
+            totalMeetings,
+            currentMeetings: paginatedMeetings.length,
+        });
+        // res.json({meetings});
     } catch (error) {
         console.error('Error fetching meetings:', error);
         res.status(500).json({message: 'Internal server error'});
