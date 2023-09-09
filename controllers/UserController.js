@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const User = require('../Models/UserModel');
+const User = require('../models/UserModel');
 // const OAuth = require('oauth').OAuth;
 const nodemailer = require("nodemailer");
 const {format, addMinutes} = require('date-fns');

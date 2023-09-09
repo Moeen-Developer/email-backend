@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const EmailController = require("../Controllers/EmailController");
+const EmailController = require("../controllers/EmailController");
 
 
 // Route to fetch all emails for a user
