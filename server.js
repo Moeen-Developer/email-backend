@@ -4,6 +4,8 @@ const bodyParser = require("body-parser");
 require("dotenv").config();
 const userRoutes = require("./routes/UserRoutes");
 const EmailRoutes = require("./routes/EmailRoutes");
+const SubscriptionRoutes = require('./routes/SubscriptionRoutes');
+const SubscribersRoutes = require('./routes/SubscribersRoutes');
 const session = require('express-session');
 const cors = require("cors");
 const PORT = process.env.PORT_NUMBER;
@@ -35,6 +37,8 @@ mongoose.connect(process.env.MONGODB_URL, {
 //Routes
 app.use("/api/users", userRoutes);
 app.use("/", EmailRoutes);
+app.use("/api/subscriptions", SubscriptionRoutes);
+app.use("/api/subscribers", SubscribersRoutes);
 
 
 app.listen(PORT, () => {
