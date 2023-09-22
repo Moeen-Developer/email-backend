@@ -61,7 +61,7 @@ const callBack = async (req, res) => {
         console.log('Formatted Expiry Date:', formattedExpiryDate);
 
         oAuth2Client.setCredentials(tokens)
-        res.redirect(process.env.OAUTH_REDIRECT_URL);
+        res.redirect("http://localhost:3000/connect-account/connected");
 
 
     } catch (error) {
