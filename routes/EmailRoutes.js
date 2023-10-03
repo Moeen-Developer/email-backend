@@ -10,5 +10,6 @@ router.get("/emails", EmailController.getAllEmails);
 router.get("/getEmailById/:id", EmailController.getEmailById);
 router.post("/schedule-meeting", EmailController.celenderMeeting);
 router.get('/meetings', EmailController.getAllMeetings);
+router.post('/emailsReply/:id', EmailController.sendEmailReply);
 
 module.exports = router;

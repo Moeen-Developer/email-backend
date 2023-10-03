@@ -17,7 +17,7 @@ const connectGoogleAccount = (req, res) => {
     try {
         const userId = req.params.userId;
         const authUrl = oAuth2Client.generateAuthUrl({
-            access_type: 'offline', scope: [GMAIL_SCOPES, CALENDER_SCOPES].join(' '),
+            access_type: 'offline', scope: [GMAIL_SCOPES, CALENDER_SCOPES, 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.compose'].join(' '),
         });
         req.session.userId = userId;
         res.redirect(authUrl);
@@ -198,6 +198,58 @@ const getEmailById = async (req, res) => {
 
     }
 };
+const sendEmailReply = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { replyText } = req.body;
+
+        // Fetch the original email content
+        const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+        const response = await gmail.users.messages.get({
+            userId: 'me',
+            id,
+        });
+        const originalEmail = response.data;
+
+        // Create a reply message
+        const replyMessage = {
+            to: originalEmail.payload.headers.find((header) => header.name === 'From').value,
+            subject: `Re: ${originalEmail.payload.headers.find((header) => header.name === 'Subject').value}`,
+            body: replyText, // You may want to format this properly
+        };
+
+        // Construct the reply email
+        const raw = makeRawEmail(replyMessage);
+
+        // Send the reply email
+        await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: {
+                raw,
+            },
+        });
+
+        res.json({ message: 'Email reply sent successfully' });
+    } catch (error) {
+        console.error('Error sending email reply:', error);
+        res.status(500).json({ message: 'Failed to send email reply', error: error.message });
+    }
+};
+
+// Helper function to construct a raw email
+const makeRawEmail = ({ to, subject, body }) => {
+    const email = [
+        'Content-Type: text/plain; charset="UTF-8"\n',
+        'MIME-Version: 1.0\n',
+        `To: ${to}\n`,
+        `Subject: ${subject}\n`,
+        '\n',
+        body,
+    ].join('');
+
+    return Buffer.from(email).toString('base64').replace(/\+/g, '-').replace(/\//g, '_');
+};
+
 const scheduleMeeting = async (auth, meetingDetails) => {
     try {
         const calendar = google.calendar({version: 'v3', auth});
@@ -290,5 +342,5 @@ const getAllMeetings = async (req, res) => {
 
 
 module.exports = {
-    connectGoogleAccount, callBack, getAllEmails, getEmailById, celenderMeeting, getAllMeetings
+    connectGoogleAccount, callBack, getAllEmails, getEmailById, celenderMeeting, getAllMeetings, sendEmailReply
 }
