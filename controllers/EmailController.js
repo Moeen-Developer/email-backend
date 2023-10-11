@@ -11,7 +11,7 @@ const axios = require("axios");
 const GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 const CALENDER_SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
-const oAuth2Client = new OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URI,);
+const oAuth2Client = new OAuth2(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URI);
 
 const connectGoogleAccount = (req, res) => {
     try {
@@ -339,8 +339,11 @@ const getAllMeetings = async (req, res) => {
         res.status(500).json({message: 'Internal server error'});
     }
 };
+const openForm = (req, res) => {
+    res.send("Hello World");
+}
 
 
 module.exports = {
-    connectGoogleAccount, callBack, getAllEmails, getEmailById, celenderMeeting, getAllMeetings, sendEmailReply
+    connectGoogleAccount, callBack, getAllEmails, getEmailById, celenderMeeting, getAllMeetings, sendEmailReply,openForm
 }
