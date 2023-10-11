@@ -35,10 +35,10 @@ mongoose.connect(process.env.MONGODB_URL, {
 })
 
 //Routes
-app.use("/api/users", userRoutes);
+app.use("/users", userRoutes);
 app.use("/email", EmailRoutes);
-app.use("/api/subscriptions", SubscriptionRoutes);
-app.use("/api/subscribers", SubscribersRoutes);
+app.use("/subscriptions", SubscriptionRoutes);
+app.use("/subscribers", SubscribersRoutes);
 
 
 app.listen(PORT, () => {
