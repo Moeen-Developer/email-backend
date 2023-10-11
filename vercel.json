@@ -2,8 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
+      "src": "index.js",
+      "use": "@now/node"
     }
   ],
   "routes": [
@@ -25,8 +25,8 @@
       "dest": "Routes/EmailRoutes.js"
     },
     {
-      "src": "/.*",
-      "dest": "server.js"
+      "src": "/(.*)",
+      "dest": "index.js"
     }
   ]
 }
