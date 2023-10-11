@@ -36,7 +36,7 @@ mongoose.connect(process.env.MONGODB_URL, {
 
 //Routes
 app.use("/api/users", userRoutes);
-app.use("/", EmailRoutes);
+app.use("/email", EmailRoutes);
 app.use("/api/subscriptions", SubscriptionRoutes);
 app.use("/api/subscribers", SubscribersRoutes);
 

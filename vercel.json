@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/users",
+      "dest": "Routes/UserRoutes.js"
+    },
+    {
+      "src": "/subscriptions",
+      "dest": "Routes/SubscriptionRoutes.js"
+    },
+
+    {
+      "src": "/subscribers",
+      "dest": "Routes/SubscribersRoutes.js"
+    },
+    {
+      "src": "/email",
+      "dest": "Routes/EmailRoutes.js"
+    },
+    {
+      "src": "/.*",
+      "dest": "server.js"
+    }
+  ]
+}
